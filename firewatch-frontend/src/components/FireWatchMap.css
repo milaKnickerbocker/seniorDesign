@@ -1,0 +1,106 @@
+.map-wrapper {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 94px);
+    min-height: 400px;
+}
+
+.map-container {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: lightblue;
+}
+
+.map-info {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    width: min(620px, calc(100% - 40px));
+    max-height: calc(100% - 40px);
+    overflow: auto;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.delete-confirm { 
+    margin-top: 12px; 
+    padding: 14px; 
+    border: 1px solid #e5a3a3; 
+    border-radius: 8px; 
+    background: #fff5f5; 
+}
+
+.delete-confirm p {
+    margin-top: 0;
+    color: #333;
+}
+
+.delete-confirm button {
+    margin-right: 8px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.delete-confirm button:first-of-type {
+    background: #c62828;
+    color: white;
+}
+
+.delete-confirm button:last-of-type {
+    background: #e5e7eb;
+    color: #222;
+}
+
+.boundary-actions { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 8px; 
+    margin: 12px 0; 
+}
+
+.boundary-actions button, 
+.delete-confirm button { 
+    padding: 8px 12px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+}
+
+.boundary-actions button { 
+    background: #e5e7eb; 
+    color: #222; 
+}
+
+.boundary-actions .delete-boundary-button, 
+.delete-confirm button:first-of-type { 
+    background: #c62828; 
+    color: white; 
+}
+
+.delete-confirm h3 { 
+    margin-top: 0; 
+}
+
+.delete-confirm button { 
+    margin: 4px 8px 4px 0; 
+}
+
+.delete-confirm button:last-of-type { 
+    background: #e5e7eb; 
+    color: #222; 
+}
+
+.map-info pre { 
+    max-height: 250px; 
+    overflow: auto; 
+    white-space: pre-wrap; 
+    overflow-wrap: anywhere;
+}
