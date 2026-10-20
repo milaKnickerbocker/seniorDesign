@@ -6,10 +6,13 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import "./FireWatchMap.css";
 
+import { startFakeTelemetry } from "./fakeTelemetry";
+
 function FireWatchMap() {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const draw = useRef(null);
+    const droneMarker = useRef(null);
 
     const [geoJson, setGeoJson] = useState(null);
     const [message, setMessage] = useState("");
@@ -145,6 +148,8 @@ function FireWatchMap() {
 
     useEffect(() => {
 
+        let stopFakeTelemetry = null;
+
         if (map.current) return;
         
         const mapInstance = new mapboxgl.Map({
@@ -158,6 +163,28 @@ function FireWatchMap() {
         map.current = mapInstance;
 
         mapInstance.on("load", () => {
+
+            // Create the drone marker
+            const marker = new mapboxgl.Marker({ color: "#16a34a" })
+            .setLngLat([-81.3792, 28.5383])
+            .addTo(mapInstance);
+            
+            droneMarker.current = marker;
+            
+            // Start fake telemetry and move the marker
+            stopFakeTelemetry = startFakeTelemetry((telemetry) => {
+                console.log(
+                    "FireWatch telemetry:",
+                    telemetry.latitude,
+                    telemetry.longitude
+                );
+                
+                droneMarker.current?.setLngLat([
+                    telemetry.longitude,
+                    telemetry.latitude,
+                ]);
+            });
+
             const drawControl = new MapboxDraw({
                 displayControlsDefault: false,
                 controls: {
@@ -172,7 +199,14 @@ function FireWatchMap() {
         mapInstance.on("draw.create", handleDraw);
         mapInstance.on("draw.update", handleDraw);
         mapInstance.on("draw.selectionchange",handleSelectionChange);
-        mapInstance.on("draw.delete",handleDelete);
+        mapInstance.on("draw.delete",handleDelete);        
+
+        stopFakeTelemetry = startFakeTelemetry((telemetry) => {
+            droneMarker.current?.setLngLat([
+                telemetry.longitude,
+                telemetry.latitude,
+            ]);
+        });
 
         });
         
@@ -181,10 +215,16 @@ function FireWatchMap() {
     });
 
     return () => {
+        stopFakeTelemetry?.();
+
+        droneMarker.current?.remove();
+        droneMarker.current = null;
+
         mapInstance.remove();
         map.current = null;
         draw.current = null;
     };
+
 }, []);
 
     return (
