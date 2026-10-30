@@ -1,10 +1,3 @@
-.map-wrapper {
-    position: relative;
-    width: 100%;
-    height: calc(100vh - 94px);
-    min-height: 400px;
-}
-
 .map-container {
     position: absolute;
     inset: 0;
@@ -103,4 +96,46 @@
     overflow: auto; 
     white-space: pre-wrap; 
     overflow-wrap: anywhere;
+}
+
+/*.drone-status-card {
+    background: white;
+    color: #222;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px;
+    max-width: 300px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}*/
+
+/*.drone-status-card h2 {
+    margin-top: 0;
+}*/
+
+/*temp below*/
+.map-wrapper {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 94px);
+    min-height: 400px;
+}
+
+.drone-status-card {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+
+    background: white;
+    color: black;
+    padding: 16px;
+    border-radius: 8px;
+
+    width: 250px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.drone-status-card h2 {
+    margin-top: 0;
 }

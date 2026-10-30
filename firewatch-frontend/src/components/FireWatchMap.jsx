@@ -19,6 +19,11 @@ function FireWatchMap() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
+    const [droneStatus, setDroneStatus] = useState(null);
+    const [lastTelemetryTime, setLastTelemetryTime] = useState(null);
+    const [connectionState, setConnectionState] = useState("Waiting");
+
+
     //return currently selected boundary if there is one
     function getSelectedBoundary(){
         if(!draw.current) return null;
@@ -173,16 +178,17 @@ function FireWatchMap() {
             
             // Start fake telemetry and move the marker
             stopFakeTelemetry = startFakeTelemetry((telemetry) => {
-                console.log(
-                    "FireWatch telemetry:",
+                console.log("FireWatch telemetry:",
                     telemetry.latitude,
                     telemetry.longitude
                 );
-                
                 droneMarker.current?.setLngLat([
                     telemetry.longitude,
                     telemetry.latitude,
                 ]);
+                setDroneStatus(telemetry);
+                setLastTelemetryTime(Date.now());
+                setConnectionState("Connected");
             });
 
             const drawControl = new MapboxDraw({
@@ -194,7 +200,7 @@ function FireWatchMap() {
 
         draw.current = drawControl;
 
-        mapInstance.addControl(drawControl, "top-right");
+        mapInstance.addControl(drawControl, "bottom-right");
 
         mapInstance.on("draw.create", handleDraw);
         mapInstance.on("draw.update", handleDraw);
@@ -227,12 +233,57 @@ function FireWatchMap() {
 
 }, []);
 
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            if (lastTelemetryTime === null) {
+                setConnectionState("Waiting");
+                return;
+            }
+
+            const elapsed = Date.now() - lastTelemetryTime;
+
+            if (elapsed > 10000) {
+                setConnectionState("Disconnected");
+            } else if (elapsed > 3000) {
+                setConnectionState("Stale");
+            } else {
+                setConnectionState("Connected");
+            }
+        }, 1000);
+
+        return () => clearInterval(intervalId);
+    }, [lastTelemetryTime]);
+
     return (
         <div className="map-wrapper">
             <div
                 ref={mapContainer}
                 className="map-container"
             />
+
+            <div className="drone-status-card">
+                <h2>Drone Status</h2>
+
+                <p>
+                    <strong>Connection:</strong> {connectionState}
+                </p>
+
+                <p>
+                    <strong>Battery:</strong>{" "}
+                    {droneStatus?.batteryPercent != null
+                        ? `${droneStatus.batteryPercent}%`
+                        : "Unavailable"}
+                </p>
+
+                <p>
+                    <strong>Activity:</strong>{" "}
+                    {connectionState === "Waiting"
+                        ? "Waiting for telemetry"
+                        : connectionState !== "Connected"
+                            ? "Unknown"
+                            : droneStatus?.activity ?? "Unknown"}
+                </p>
+            </div>
 
             <div className="map-info">
                 <h2>FireWatch Patrol Boundary</h2>
