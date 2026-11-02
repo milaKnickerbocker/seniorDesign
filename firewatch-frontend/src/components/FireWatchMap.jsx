@@ -207,12 +207,6 @@ function FireWatchMap() {
         mapInstance.on("draw.selectionchange",handleSelectionChange);
         mapInstance.on("draw.delete",handleDelete);        
 
-        stopFakeTelemetry = startFakeTelemetry((telemetry) => {
-            droneMarker.current?.setLngLat([
-                telemetry.longitude,
-                telemetry.latitude,
-            ]);
-        });
 
         });
         
