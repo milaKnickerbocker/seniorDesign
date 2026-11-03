@@ -235,3 +235,101 @@ Independent verifier: Justin
 Verification status: Pending independent execution.
 
 Evidence: Screen recording and flight log to be provided through the team's SharePoint workspace.
+
+
+
+
+## Sprint 2 — SITL Waypoint Mission and MQTT Telemetry
+
+### Overview
+
+The FireWatch drone simulation now supports autonomous waypoint navigation and real-time MQTT telemetry publishing.
+
+The simulation uses PX4 SITL, Gazebo, MAVSDK-Python, and the Mosquitto MQTT broker.
+
+### Features
+
+- Autonomous navigation through three predefined GPS waypoints.
+- Automatic return-to-launch and landing after mission completion.
+- Live telemetry publishing at approximately 2 Hz.
+- JSON messages following the FireWatch telemetry interface contract.
+- Automated verification of MQTT message format and publication frequency.
+
+### MQTT Configuration
+
+- **Broker:** localhost
+- **Port:** 1883
+- **Topic:** `home/drone/telemetry`
+- **Drone ID:** `drone-01`
+
+Each telemetry message contains the following fields:
+
+`droneId`, `timestamp`, `lat`, `lon`, `altitude`, `heading`, `groundSpeed`, `battery`, and `status`.
+
+### Setup
+
+Install the Python dependencies:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+Install and start Mosquitto on Ubuntu:
+
+```bash
+sudo apt install mosquitto mosquitto-clients
+sudo service mosquitto start
+```
+
+### Running the Simulation
+
+**Terminal 1 — PX4 SITL**
+
+```bash
+cd ~/PX4-Autopilot
+make px4_sitl gz_x500
+```
+
+**Terminal 2 — MQTT Subscriber**
+
+```bash
+mosquitto_sub -h localhost -t home/drone/telemetry -v
+```
+
+**Terminal 3 — Waypoint Mission**
+
+From the `drone-simulation` directory with your Python virtual environment activated:
+
+```bash
+python waypoint_mission.py
+```
+
+### Automated Verification
+
+In a separate terminal, run:
+
+```bash
+python verify_telemetry.py
+```
+
+Start the verifier shortly after the MQTT publisher begins sending messages.
+
+The verification script checks the telemetry JSON fields, data types, valid value ranges, UTC timestamp formatting, and average publishing frequency.
+
+### Sprint 2 Test Results
+
+The simulation successfully completed a three-waypoint mission, returned to launch, and landed.
+
+Automated MQTT verification produced:
+
+| Metric | Result |
+|---|---|
+| Messages received | 20 |
+| Messages passing validation | 20/20 |
+| Average interval | 0.501 seconds |
+| Measured frequency | 1.99 Hz |
+| JSON contract validation | PASS |
+| Publishing rate | PASS |
+| Overall result | PASS |
+
+The telemetry verification uses a 20-message sample. The backend team should confirm the final allowed status values and altitude reference for production integration.
