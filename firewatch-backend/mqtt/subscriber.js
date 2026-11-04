@@ -12,14 +12,16 @@ function parseJson(payload) {
   }
 }
 
-async function handleTelemetry(data) {
+async function handleTelemetry(data, io) {
   const doc = await Telemetry.create(data);
+  io.emit('drone:telemetry', doc);
   console.log(`[mqtt] telemetry saved: ${doc.droneId} @ ${doc.timestamp.toISOString()}`);
 }
 
-async function handleDetection(data) {
+async function handleDetection(data, io) {
   try {
     const doc = await Detection.create(data);
+    io.emit('detection:new', doc)
     console.log(`[mqtt] detection saved: ${doc._id} (${doc.detectionType}, confidence ${doc.confidence})`);
   } catch (err) {
     if (err.code === 11000) {
@@ -35,7 +37,7 @@ const handlers = {
   [topics.DETECTION]: handleDetection,
 };
 
-function startMqtt() {
+function startMqtt(io) {
   const client = mqtt.connect(process.env.MQTT_URL || 'mqtt://localhost:1883');
 
   client.on('connect', () => {
@@ -56,7 +58,7 @@ function startMqtt() {
     }
 
     try {
-      await handler(data);
+      await handler(data, io);
     } catch (err) {
       // Bad data from one drone should never crash the server
       console.warn(`[mqtt] rejected message on ${topic}: ${err.message}`);
