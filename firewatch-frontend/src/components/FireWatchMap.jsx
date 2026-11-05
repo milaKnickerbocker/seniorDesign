@@ -8,7 +8,7 @@ import "./FireWatchMap.css";
 
 import { startFakeTelemetry } from "./fakeTelemetry";
 
-function FireWatchMap() {
+function FireWatchMap({ onBoundaryValidityChange, onRegisterClearBoundary }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const draw = useRef(null);
@@ -23,6 +23,13 @@ function FireWatchMap() {
     const [lastTelemetryTime, setLastTelemetryTime] = useState(null);
     const [connectionState, setConnectionState] = useState("Waiting");
 
+    const [isBoundaryCardMinimized, setIsBoundaryCardMinimized] = useState(false);
+
+
+    // Notify App when boundary validity changes
+    useEffect(() => {
+        onBoundaryValidityChange?.(geoJson !== null);
+    }, [geoJson, onBoundaryValidityChange]);
 
     //return currently selected boundary if there is one
     function getSelectedBoundary(){
@@ -32,6 +39,20 @@ function FireWatchMap() {
 
         return selected.features.length > 0 ? selected.features[0]:null;
     }
+
+    function clearAllBoundaries() {
+        if (!draw.current) return;
+
+        draw.current.deleteAll();
+        setGeoJson(null);
+        setMessage("Mission setup cancelled. Boundary cleared.");
+        setShowDeleteConfirm(false);
+        setPendingDeleteId(null);
+    }
+
+    useEffect(() => {
+        onRegisterClearBoundary?.(() => clearAllBoundaries);
+    }, [onRegisterClearBoundary]);
 
     //display boundary GeoJson and validate point count
     function displayBoundary(feature){
@@ -279,8 +300,20 @@ function FireWatchMap() {
                 </p>
             </div>
 
-            <div className="map-info">
-                <h2>FireWatch Patrol Boundary</h2>
+            <div className={`map-info ${isBoundaryCardMinimized ? "minimized" : ""}`}>
+                <div className="map-info-header">
+                    <h2>FireWatch Patrol Boundary</h2>
+
+                    <button
+                        className="minimize-button"
+                        onClick={() => setIsBoundaryCardMinimized(!isBoundaryCardMinimized)}
+                    >
+                        {isBoundaryCardMinimized ? "+" : "−"}
+                    </button>
+                </div>
+
+                {!isBoundaryCardMinimized && (
+                    <>
 
                 <p>
                     Draw a polygon using the polygon control. 
@@ -332,6 +365,10 @@ function FireWatchMap() {
 
                     </>
                 )}
+                
+                </>
+            )}
+
             </div>
         </div>
     );

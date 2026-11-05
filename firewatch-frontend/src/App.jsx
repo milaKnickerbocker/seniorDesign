@@ -1,8 +1,13 @@
-
 import FireWatchMap from "./components/FireWatchMap";
+import { useState } from "react";
 import "./App.css";
 
 function App() {
+
+    const [missionState, setMissionState] = useState("idle");
+    const [hasValidBoundary, setHasValidBoundary] = useState(false);
+    const [clearBoundary, setClearBoundary] = useState(null);
+
     return (
         <div className="app">
 
@@ -30,27 +35,77 @@ function App() {
                 <aside className="sidebar left-sidebar">
 
                     <section className="panel mission-panel">
-                        <h2 className="panel-title">Mission Specs.</h2>
+                        <h2 className="panel-title">Mission Controls</h2>
 
-                        <div className="mission-progress">
-                            <label>Mission Progress</label>
-                            <div className="progress-track">
-                                <div className="progress-fill"></div>
-                            </div>
-                        </div>
+                        {missionState === "idle" && (
+                            <>
+                                <div className="mission-description">
+                                    <p>
+                                        Set up a patrol mission and launch your drone.
+                                    </p>
+                                </div>
 
-                        <div className="elapsed-time">
-                            <label>Elapsed Time</label>
-                            <span>--:--:--</span>
-                        </div>
+                                <div className="mission-status">
+                                    <label>Mission Status</label>
+                                    <span>Not Started</span>
+                                </div>
 
-                        <div className="mission-buttons">
-                            <button>View Plan</button>
-                            <button>Edit Plan</button>
-                            <button className="abort-button">
-                                Abort Mission
-                            </button>
-                        </div>
+                                <div className="mission-buttons">
+                                    <button
+                                        className="create-mission-button"
+                                        onClick={() => setMissionState("setup")}
+                                    >
+                                        + Create Mission
+                                    </button>
+                                </div>
+                            </>
+                        )}
+
+                        {missionState === "setup" && (
+                            <>
+                                <div className="mission-description">
+                                    <p>
+                                        Draw a patrol boundary on the map
+                                        to define the mission area.
+                                    </p>
+                                </div>
+
+                                <div className="mission-status">
+                                    <label>Mission Status</label>
+                                    <span>
+                                        {hasValidBoundary ? "Ready to Launch" : "Setting Up"}
+                                    </span>
+                                </div>
+
+                                <div className="mission-instructions">
+                                    <p>Mission Setup</p>
+                                    <ul>
+                                        <li>Use the polygon tool on the map.</li>
+                                        <li>Draw your desired patrol area.</li>
+                                        <li>Boundary must have at least 3 points.</li>
+                                    </ul>
+                                </div>
+
+                                {hasValidBoundary && (
+                                    <div className="mission-buttons">
+                                        <button className="launch-button">
+                                            Launch Drone(s)
+                                        </button>
+                                    </div>
+                                )}
+
+                                <div className="mission-buttons">
+                                    <button
+                                        onClick={() => {
+                                            clearBoundary?.();
+                                            setMissionState("idle");
+                                        }}
+                                    >
+                                        Cancel Setup
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </section>
 
                     <section className="panel drones-panel">
@@ -69,7 +124,10 @@ function App() {
 
                 {/* Center Map */}
                 <section className="map-section">
-                    <FireWatchMap />
+                    <FireWatchMap
+                        onBoundaryValidityChange={setHasValidBoundary}
+                        onRegisterClearBoundary={setClearBoundary}
+                    />
                 </section>
 
                 {/* Right Sidebar */}

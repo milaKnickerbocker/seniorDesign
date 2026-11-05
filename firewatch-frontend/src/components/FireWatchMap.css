@@ -156,3 +156,34 @@
 .message {
     font-weight: bold;
 }
+
+.map-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.map-info-header h2 {
+    margin: 0;
+}
+
+.minimize-button {
+    background: #dddddd;
+    color: #222;
+    border: none;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    font-size: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.minimize-button:hover {
+    background: #bbbbbb;
+}
+
+.map-info.minimized {
+    padding: 10px 14px;
+}
