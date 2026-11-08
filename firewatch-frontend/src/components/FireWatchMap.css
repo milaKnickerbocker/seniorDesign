@@ -187,3 +187,16 @@
 .map-info.minimized {
     padding: 10px 14px;
 }
+
+/* Disable polygon drawing when no mission is being set up */
+.drawing-disabled .mapbox-gl-draw_polygon {
+    pointer-events: none;
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.drawing-disabled-message {
+    color: #cccccc;
+    font-size: 12px;
+    font-style: italic;
+}

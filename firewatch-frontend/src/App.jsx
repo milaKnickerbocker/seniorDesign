@@ -19,7 +19,7 @@ function App() {
                 </div>
 
                 <div className="mission-title">
-                    Mission #2
+                    Mission #1
                 </div>
 
                 <div className="system-status">
@@ -127,6 +127,7 @@ function App() {
                     <FireWatchMap
                         onBoundaryValidityChange={setHasValidBoundary}
                         onRegisterClearBoundary={setClearBoundary}
+                        drawingEnabled={missionState === "setup"}
                     />
                 </section>
 

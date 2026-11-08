@@ -8,7 +8,7 @@ import "./FireWatchMap.css";
 
 import { startFakeTelemetry } from "./fakeTelemetry";
 
-function FireWatchMap({ onBoundaryValidityChange, onRegisterClearBoundary }) {
+function FireWatchMap({ onBoundaryValidityChange, onRegisterClearBoundary, drawingEnabled}) {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const draw = useRef(null);
@@ -24,6 +24,8 @@ function FireWatchMap({ onBoundaryValidityChange, onRegisterClearBoundary }) {
     const [connectionState, setConnectionState] = useState("Waiting");
 
     const [isBoundaryCardMinimized, setIsBoundaryCardMinimized] = useState(false);
+
+    const [drawControlReady, setDrawControlReady] = useState(false);
 
 
     // Notify App when boundary validity changes
@@ -223,6 +225,9 @@ function FireWatchMap({ onBoundaryValidityChange, onRegisterClearBoundary }) {
 
         mapInstance.addControl(drawControl, "bottom-right");
 
+        setDrawControlReady(true);
+
+
         mapInstance.on("draw.create", handleDraw);
         mapInstance.on("draw.update", handleDraw);
         mapInstance.on("draw.selectionchange",handleSelectionChange);
@@ -246,7 +251,17 @@ function FireWatchMap({ onBoundaryValidityChange, onRegisterClearBoundary }) {
         draw.current = null;
     };
 
-}, []);
+    }, []);
+
+    useEffect(() => {
+        if (!draw.current || !drawControlReady) return;
+
+        // If mission setup is cancelled or finished, exit polygon drawing mode
+        if (!drawingEnabled && draw.current.getMode() === "draw_polygon") {
+            draw.current.changeMode("simple_select");
+        }
+
+    }, [drawingEnabled, drawControlReady]);
 
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -270,7 +285,7 @@ function FireWatchMap({ onBoundaryValidityChange, onRegisterClearBoundary }) {
     }, [lastTelemetryTime]);
 
     return (
-        <div className="map-wrapper">
+        <div className={`map-wrapper ${drawingEnabled ? "" : "drawing-disabled"}`}>
             <div
                 ref={mapContainer}
                 className="map-container"
@@ -304,6 +319,12 @@ function FireWatchMap({ onBoundaryValidityChange, onRegisterClearBoundary }) {
                 <div className="map-info-header">
                     <h2>FireWatch Patrol Boundary</h2>
 
+                    {!drawingEnabled && (
+                    <p className="drawing-disabled-message">
+                        Create a mission to enable patrol boundary drawing.
+                    </p>
+                )}
+
                     <button
                         className="minimize-button"
                         onClick={() => setIsBoundaryCardMinimized(!isBoundaryCardMinimized)}
@@ -314,6 +335,7 @@ function FireWatchMap({ onBoundaryValidityChange, onRegisterClearBoundary }) {
 
                 {!isBoundaryCardMinimized && (
                     <>
+                
 
                 <p>
                     Draw a polygon using the polygon control. 
