@@ -21,7 +21,8 @@ async function start() {
             socket.on('disconnect', () => console.log(` [ws] client disconnected: ${socket.id}`));
         });
         
-        startMqtt(io);
+        const mqttClient = startMqtt(io);
+        app.set('mqtt', mqttClient);
         server.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
     } catch (err) {
         console.error('Failed to start: ', err.message);

@@ -15,7 +15,7 @@ const telemetrySchema = new mongoose.Schema(
         status: { type: String, required: true, trim: true, lowercase: true },
     },
     {
-        timestamps: { createdAt: 'recievedAt', updatedAt: false },
+        timestamps: { createdAt: 'receivedAt', updatedAt: false },
         versionKey: false,
     }
 

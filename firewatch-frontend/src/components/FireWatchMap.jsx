@@ -6,9 +6,9 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import "./FireWatchMap.css";
 
-import { startFakeTelemetry } from "./fakeTelemetry";
+import { startLiveTelemetry } from "./liveTelemetry";
 
-function FireWatchMap({ onBoundaryValidityChange, onRegisterClearBoundary, drawingEnabled}) {
+function FireWatchMap({ onBoundaryValidityChange, onBoundaryChange, onRegisterClearBoundary, drawingEnabled}) {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const draw = useRef(null);
@@ -31,7 +31,8 @@ function FireWatchMap({ onBoundaryValidityChange, onRegisterClearBoundary, drawi
     // Notify App when boundary validity changes
     useEffect(() => {
         onBoundaryValidityChange?.(geoJson !== null);
-    }, [geoJson, onBoundaryValidityChange]);
+        onBoundaryChange?.(geoJson);
+    }, [geoJson, onBoundaryValidityChange, onBoundaryChange]);
 
     //return currently selected boundary if there is one
     function getSelectedBoundary(){
@@ -176,7 +177,7 @@ function FireWatchMap({ onBoundaryValidityChange, onRegisterClearBoundary, drawi
 
     useEffect(() => {
 
-        let stopFakeTelemetry = null;
+        let stopLiveTelemetry = null;
 
         if (map.current) return;
         
@@ -199,8 +200,8 @@ function FireWatchMap({ onBoundaryValidityChange, onRegisterClearBoundary, drawi
             
             droneMarker.current = marker;
             
-            // Start fake telemetry and move the marker
-            stopFakeTelemetry = startFakeTelemetry((telemetry) => {
+            // Start live telemetry and move the marker
+            stopLiveTelemetry = startLiveTelemetry((telemetry) => {
                 console.log("FireWatch telemetry:",
                     telemetry.latitude,
                     telemetry.longitude
@@ -241,7 +242,7 @@ function FireWatchMap({ onBoundaryValidityChange, onRegisterClearBoundary, drawi
     });
 
     return () => {
-        stopFakeTelemetry?.();
+        stopLiveTelemetry?.();
 
         droneMarker.current?.remove();
         droneMarker.current = null;

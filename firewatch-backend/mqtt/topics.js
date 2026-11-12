@@ -3,5 +3,5 @@
 module.exports = {
   TELEMETRY: 'home/drone/telemetry', // drone -> backend
   DETECTION: 'home/drone/alert', // drone -> backend
-  COMMAND: 'home/dashboard/command', // backend -> drone (not used yet)
+  commandFor: (droneId) => `home/dashboard/command/${droneId}`, // backend -> one drone
 };

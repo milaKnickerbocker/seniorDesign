@@ -1,12 +1,62 @@
 import FireWatchMap from "./components/FireWatchMap";
+import AlertsPanel from "./components/AlertsPanel";
 import { useState } from "react";
 import "./App.css";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 function App() {
 
     const [missionState, setMissionState] = useState("idle");
     const [hasValidBoundary, setHasValidBoundary] = useState(false);
     const [clearBoundary, setClearBoundary] = useState(null);
+    const [boundary, setBoundary] = useState(null);      // the drawn polygon (GeoJSON feature)
+    const [droneCount, setDroneCount] = useState(1);
+    const [mission, setMission] = useState(null);        // the launched mission from the backend
+    const [launching, setLaunching] = useState(false);
+    const [launchError, setLaunchError] = useState("");
+
+    async function launchMission() {
+        if (!boundary) return;
+        setLaunchError("");
+        setLaunching(true);
+
+        // GeoJSON points are [lng, lat] and the ring repeats its first point at the end
+        const ring = boundary.geometry.coordinates[0].slice(0, -1);
+        const points = ring.map(([lng, lat]) => ({ lat, lon: lng }));
+
+        try {
+            const res = await fetch(`${API_URL}/api/missions`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ boundary: points, droneCount: Number(droneCount) }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+            setMission(data);
+            setMissionState("active");
+        } catch (err) {
+            setLaunchError(err.message);
+        } finally {
+            setLaunching(false);
+        }
+    }
+
+    async function abortMission() {
+        try {
+            const res = await fetch(`${API_URL}/api/missions/${mission._id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: "aborted" }),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            clearBoundary?.();
+            setMission(null);
+            setMissionState("idle");
+        } catch (err) {
+            setLaunchError(err.message);
+        }
+    }
 
     return (
         <div className="app">
@@ -86,12 +136,33 @@ function App() {
                                     </ul>
                                 </div>
 
+                                <div className="mission-status">
+                                    <label htmlFor="drone-count">Number of Drones</label>
+                                    <input
+                                        id="drone-count"
+                                        className="drone-count-input"
+                                        type="number"
+                                        min="1"
+                                        max="10"
+                                        value={droneCount}
+                                        onChange={(e) => setDroneCount(e.target.value)}
+                                    />
+                                </div>
+
                                 {hasValidBoundary && (
                                     <div className="mission-buttons">
-                                        <button className="launch-button">
-                                            Launch Drone(s)
+                                        <button
+                                            className="launch-button"
+                                            onClick={launchMission}
+                                            disabled={launching}
+                                        >
+                                            {launching ? "Launching..." : "Launch Drone(s)"}
                                         </button>
                                     </div>
+                                )}
+
+                                {launchError && (
+                                    <p className="launch-error" role="alert">{launchError}</p>
                                 )}
 
                                 <div className="mission-buttons">
@@ -103,6 +174,36 @@ function App() {
                                     >
                                         Cancel Setup
                                     </button>
+                                </div>
+                            </>
+                        )}
+                        {missionState === "active" && mission && (
+                            <>
+                                <div className="mission-description">
+                                    <p>Mission launched. Each drone is patrolling its assigned zone.</p>
+                                </div>
+
+                                <div className="mission-status">
+                                    <label>Mission Status</label>
+                                    <span>Active</span>
+                                </div>
+
+                                <div className="mission-instructions">
+                                    <p>Mission {mission._id.slice(-6)}</p>
+                                    <ul>
+                                        <li>{mission.droneCount} drone(s) assigned</li>
+                                        <li>
+                                            {mission.dispatched} of {mission.droneCount} received their zone
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                {launchError && (
+                                    <p className="launch-error" role="alert">{launchError}</p>
+                                )}
+
+                                <div className="mission-buttons">
+                                    <button onClick={abortMission}>Abort Mission</button>
                                 </div>
                             </>
                         )}
@@ -126,23 +227,17 @@ function App() {
                 <section className="map-section">
                     <FireWatchMap
                         onBoundaryValidityChange={setHasValidBoundary}
+                        onBoundaryChange={setBoundary}
                         onRegisterClearBoundary={setClearBoundary}
                         drawingEnabled={missionState === "setup"}
                     />
                 </section>
+                
 
                 {/* Right Sidebar */}
                 <aside className="sidebar right-sidebar">
 
-                    <section className="panel alerts-panel">
-                        <h2 className="panel-title alerts-title">
-                            Past Alerts
-                        </h2>
-
-                        <div className="empty-state">
-                            No alerts recorded.
-                        </div>
-                    </section>
+                    <AlertsPanel />
 
                     <section className="panel logs-panel">
                         <h2 className="panel-title">Logs</h2>

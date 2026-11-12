@@ -28,7 +28,7 @@ const missionSchema = new Schema(
             },
         },
         droneCount: { type: Number, required: true, min: 1 },
-        drones: { type: [droneZoneSchema], defaule: [] },
+        drones: { type: [droneZoneSchema], default: [] },
         status: {
             type: String,
             enum: ['active', 'completed', 'aborted'],
